@@ -1,0 +1,8 @@
+title Duo Authentication Proxy Flow
+
+Client->DuoAuthProxy:RADIUS Request
+DuoAuthProxy->FreeRadius:RADIUS request forwarded
+FreeRadius->DuoAuthProxy: Access ACCEPT
+DuoAuthProxy->DuoApp: Duo Push to MFA Client
+DuoApp->DuoAuthProxy: Authorized by Duo App
+DuoAuthProxy->Client: Access ACCEPT
