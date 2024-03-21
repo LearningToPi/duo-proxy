@@ -56,7 +56,7 @@ LABEL org.label-schema.url = "https://www.learningtopi.com/"
 LABEL org.label-schema.vcs-url = "https://github.com/LearningToPi/duo-proxy"
 LABEL org.label-schema.vcs-ref = "0965349"
 LABEL org.label-schema.version = "1.0.1"
-LABEL org.label-schema.release = "duoproxy-6.20"
+LABEL org.label-schema.release = "duoproxy-6.3.0"
 LABEL org.label-schema.architecture = "amd64"
 LABEL org.label-schema.changelog-url = "https://github.com/LearningToPi/duo-proxy/blob/main/release_notes/v1.0.1.md"
 
