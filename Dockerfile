@@ -19,7 +19,8 @@ RUN     DEBIAN_FRONTEND=noninteractive apt-get -y update && \
 						        libffi-dev \
 						        perl \
 						        zlib1g-dev \
-							wget -y
+							wget \
+							net-tools -y
 
 RUN adduser --disabled-password --gecos '' $USERNAME -u $UID
 
