@@ -6,5 +6,6 @@ exec() {
     wait
 }
 export -f exec
+touch /opt/duoauthproxy/log/authproxy.log
 authproxyctl start
 exec
