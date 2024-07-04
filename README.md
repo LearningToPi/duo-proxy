@@ -4,6 +4,10 @@ This provides the Duo Authentication Proxy (<https://duo.com/docs/authproxy-refe
 
    NOTE: Duo provides scale numbers of 2000 auths/min for the Linux system, however running in Docker will likely decrease the max scale.  This container has not been tested for scale.
 
+## NEW FEATURES!
+
+v1.0.5 - Added DNS resolver for RADIUS server host.  See notes below for details on using
+
 ## Use Cases
 
 This container was created to provide 2FA for an existing FreeRadius deployment that is used to authenticate OpenVPN clients, router/switch/firewall logins, etc.  The Duo Authentication Proxy is capable of using LDAP as a backend, however that was not specifically tested with this container.
@@ -73,3 +77,16 @@ The container will require the authproxy.cfg file to be mapped to '/opt/duoauthp
 If you need to use a different UID to match a user in your host system, download the Dockerfile and build with a new UID as a parameter:
 
     docker build --build-arg UID=40001 -t duo-proxy-local:latest .
+
+## RADIUS DNS Server Resolver
+
+(added in v1.0.5 - or docker image learningtopi/duo-proxy:6.4.1-2)
+
+The DUO Auth proxy service will not resolve hostnames entered for RADIUS servers, only IP addresses are supported.  In order to work around this limitation, a 'resolver.py' script has been added to the 'entrypoint.sh' file.  This script will replace any DNS names entered as a radius host with the IP address fo the device.
+
+To use the resolver, you must enable the resolver script using the RESOLVER=TRUE environment variable.  Also the config file must be mapped to /opt/duoauthproxy/conf/authproxy.cfg.resolver.  The script will replace the DNS name with IP addresses and save the file as authproxy.cfg.  The resolver will run each time the container starts.
+
+Updated container run:
+
+    docker run --name duo-proxy -d -p 1812:1812 -v [path]/authproxy.cfg.resolver:/opt/duoauthproxy/conf/authproxy.cfg.resolver -e RESOLVER=TRUE learningtopi/duo-proxy:latest
+
