@@ -1,10 +1,13 @@
-ARG USERNAME
-ARG UID
+ARG SOURCE_DISTRO
+ARG SOURCE_TAG
+ARG USERNAME=${USERNAME:-duo}
+ARG UID=${UID:-40001}
 
 # builder stage
-FROM ubuntu:22.04 AS builder
-ENV USERNAME=${USERNAME:-duo}
-ENV UID=${UID:-40001}
+FROM docker.io/${SOURCE_DISTRO}:${SOURCE_TAG} AS builder
+
+ARG USERNAME=${USERNAME:-duo}
+ARG UID=${UID:-40001}
 
 SHELL ["/bin/bash", "-c"]
 
@@ -19,7 +22,7 @@ RUN     DEBIAN_FRONTEND=noninteractive apt-get -y update && \
 						        zlib1g-dev \
 							wget -y
 
-RUN adduser --disabled-password --gecos '' $USERNAME -u $UID
+RUN useradd -u $UID $USERNAME
 
 RUN cd /tmp && \
 	wget https://dl.duosecurity.com/duoauthproxy-latest-src.tgz && \
@@ -31,21 +34,18 @@ RUN cd /tmp && \
 	./install --install-dir /opt/duoauthproxy --service-user duo --log-group duo --create-init-script yes
 
 # Final stage
-FROM ubuntu:22.04
+FROM docker.io/${SOURCE_DISTRO}:${SOURCE_TAG}
+ARG USERNAME=${USERNAME:-duo}
+ARG UID=${UID:-40001}
+
 COPY --from=builder /opt/duoauthproxy /opt/duoauthproxy
 
-LABEL ubuntu="22.04"
-
-ARG USERNAME
-ARG UID
-ENV USERNAME=${USERNAME:-duo}
-ENV UID=${UID:-40001}
-ENV PATH="${PATH}:/opt/duoauthproxy/bin"
-ENV RESOLVER=
-
-RUN adduser --disabled-password --gecos '' $USERNAME -u $UID
+RUN useradd -u $UID $USERNAME
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y update && apt-get install net-tools
+
+ENV PATH="${PATH}:/opt/duoauthproxy/bin"
+ENV RESOLVER=
 
 EXPOSE 1812/udp
 WORKDIR /scripts
@@ -59,20 +59,13 @@ ENTRYPOINT ["/scripts/entrypoint.sh"]
 
 HEALTHCHECK CMD netstat -ulpen | grep 1812 > /dev/null; if [ 0 != $? ]; then exit 1; fi;
 
-LABEL description="Install Duo RADIUS Proxy"
-
-
-LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.name="Duo Auth Proxy"
-LABEL org.label-schema.vendor="LearningToPi.com"
-LABEL org.label-schema.description="Duo RADIUS Auth Proxy packaged to run as a Docker container."
-LABEL org.label-schema.usage="/README.md"
-LABEL org.label-schema.url="https://www.learningtopi.com/"
-LABEL org.label-schema.vcs-url="https://github.com/LearningToPi/duo-proxy"
-LABEL org.label-schema.vcs-ref="0965349"
-LABEL org.label-schema.version="1.0.3"
-LABEL org.label-schema.release="duoproxy-6.3.0"
-LABEL org.label-schema.architecture="aarch64"
-LABEL org.label-schema.changelog-url="https://github.com/LearningToPi/duo-proxy/blob/main/release_notes/v1.0.1.md"
+LABEL org.opencontainers.image.title="Duo Auth Proxy"
+LABEL org.opencontainers.image.description="Duo RADIUS Auth Proxy packaged to run as a Docker container."
+LABEL org.opencontainers.image.ref.name="learningtopi/duo-proxy"
+LABEL org.opencontainers.image.version="$BUILD_VERSION"
+LABEL org.opencontainers.image.source="https://github.com/LearningToPi/vsftpd_docker"
+LABEL org.opencontainers.image.vendor="LearningToPi.com"
+LABEL org.opencontainers.image.base.name="docker.io/$SOURCE_DISTRO:$SOURCE_TAG"
+LABEL org.opencontainers.image.documentation="/README.md"
 
 LABEL org.label-schema.docker.cmd='docker run --name duo-proxy -d -p 1812:1812 -v [path]/authproxy.cfg:/opt/duoauthproxy/conf/authproxy.cfg -v [path]/log/:/opt/duoauthproxy/log/ learningtopi/duo-proxy'
