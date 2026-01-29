@@ -2,7 +2,7 @@
 exec() {
     tail -f /opt/duoauthproxy/log/authproxy.log &
     pid="$!"
-    trap 'authproxyctl stop' SIGTERM
+    trap 'authproxyctl stop' SIGTERM SIGINT
     wait
 }
 export -f exec
